@@ -1,0 +1,38 @@
+name: Validate Agentic Skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - ".github/workflows/validate-skills.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "skills/**"
+
+jobs:
+  validate-skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run agentic-skill-validator
+        run: npx --yes agentic-skill-validator ./skills
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" >" = "success" ]; then
+            echo "PASS: All skills comply with agentic-skill-validator rules." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "FAIL: One or more skills violate validator rules. Open Skill Atlas to debug:" >> "$GITHUB_STEP_SUMMARY"
+            echo "https://atlas-skills.netlify.app" >> "$GITHUB_STEP_SUMMARY"
+          fi
